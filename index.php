@@ -197,6 +197,21 @@
                 document.getElementById('updateTime').textContent = new Date().toLocaleString();
             });
         }
+
+        function sendDataToDb(){
+            let dataArray = table.rows().data().toArray();
+            return $.ajax({
+                url: "saveStatistics.php",
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({dataArray: dataArray}),
+                success: function(response){
+                    console.log(response);
+                }
+            });
+        }
+
+        setInterval(sendDataToDb(), 10000);
     </script>
 </body>
 </html>
