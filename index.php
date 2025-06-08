@@ -14,6 +14,14 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <link href="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.3.2/b-3.2.3/b-html5-3.2.3/datatables.min.css" rel="stylesheet" integrity="sha384-cUwynvVEspVhxrXYAuUW86OEATeSsRoRFF7KHu+VmqxUVYBhubNKR1WxV+z6pnFI" crossorigin="anonymous">
+ 
+    <link href="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.3.2/b-3.2.3/b-html5-3.2.3/cc-1.0.4/datatables.min.css" rel="stylesheet" integrity="sha384-SHbyZKF7PSmTi23Pzu2xCTNP0LCxcsuHsyDpZoujlJ763bm4l2QiDU9280Rgipms" crossorigin="anonymous">
+ 
+    <script src="https://cdn.datatables.net/v/dt/jszip-3.10.1/dt-2.3.2/b-3.2.3/b-html5-3.2.3/cc-1.0.4/datatables.min.js" integrity="sha384-lEV7R4K8I+PYG2kqJZHua2ao4z/uWJ6m8V04oJxiYTEy2ojGkDe4u/7h+RfzvbZL" crossorigin="anonymous"></script>
+
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <style>
         /* Custom styling */
         .dataTables_wrapper {
@@ -64,11 +72,17 @@
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <div class="d-grid w-100">
-                                <button class="btn btn-success" onclick="table.buttons(0).trigger()">
+                                <button class="btn btn-success mx-1" onclick="table.buttons(0).trigger()">
                                     <i class="fas fa-file-excel me-1"></i> Export Excel
                                 </button>
                             </div>
+                              <div class="d-grid w-100">
+                                <button class="btn btn-danger" onclick="table.buttons(1).trigger()">
+                                    <i class="fas fa-file-pdf me-1"></i> Export PDF
+                                </button>
+                            </div>
                         </div>
+                        
                     </div>
                 </div>
                 
@@ -106,13 +120,13 @@
             buttons: [
                 {
                     extend: 'excelHtml5',
-                    className: 'btn-success',
+                    className: 'd-none',
                     text: '<i class="fas fa-file-excel me-1"></i> Excel',
                     title: 'Vehicle_Data'
                 },
                 {
                     extend: 'pdfHtml5',
-                    className: 'btn-danger',
+                    className: 'd-none',
                     text: '<i class="fas fa-file-pdf me-1"></i> PDF',
                     title: 'Vehicle_Data'
                 }
