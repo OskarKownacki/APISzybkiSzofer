@@ -1,17 +1,20 @@
 <?php
 header('Content-Type: application/json');
 
-$data = json_decode(file_get_contents('php:://input'), true);
+$data = json_decode(file_get_contents('php://input'), true);
 
 if(!$data || !isset($data['dataArray'])){
     throw new Exception('Invalid input data');
 }
 
+$inserted = 0;
+
+
 $db = new PDO('sqlite:szofer.db');
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Prepare the insert statement
-    $stmt = $db->prepare("INSERT INTO vehicles (vehicle_id, velocity) VALUES (:vehicle_id, :velocity)");
+    $stmt = $db->prepare("INSERT INTO statistic (vehicle_id, velocity, vehicle_line, time_added) VALUES (:vehicle_id, :velocity, :vehicle_line, :time_added)");
 
      foreach ($data['dataArray'] as $vehicle) {
         try {
@@ -24,6 +27,8 @@ $db = new PDO('sqlite:szofer.db');
             // Bind parameters and execute
             $stmt->bindParam(':vehicle_id', $vehicle['vehicle_id']);
             $stmt->bindParam(':velocity', $vehicle['velocity']);
+            $stmt->bindParam(':vehicle_line', $vehicle['line_number']);
+            $stmt->bindParam(':time_added', time());
             $stmt->execute();
             
             $inserted++;

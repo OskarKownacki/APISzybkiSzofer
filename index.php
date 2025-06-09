@@ -211,7 +211,7 @@
             });
         }
 
-        setInterval(sendDataToDb(), 10000);
+        setInterval(sendDataToDb, 10000);
     </script>
 </body>
 </html>
