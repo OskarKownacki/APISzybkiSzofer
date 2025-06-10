@@ -82,6 +82,8 @@
 </head>
 
 <body>
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+<link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet"/>
     <nav class="container my-4">
         <div class="row justify-content-center">
             <div class="col-10">
@@ -89,9 +91,6 @@
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" class="form-control form-control-lg" id="vehicleInput"
                         placeholder="Enter line number...">
-                    <button class="btn btn-primary" onclick="reloadTable()">
-                        <i class="fas fa-sync-alt me-1"></i> Search
-                    </button>
                 </div>
             </div>
         </div>
@@ -114,6 +113,10 @@
                         <button class="nav-link" id="late-tab" data-bs-toggle="tab" data-bs-target="#late-tab-pane"
                             type="button" role="tab">Late</button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="map-tab" data-bs-toggle="tab" data-bs-target="#map-tab-pane"
+                            type="button" role="tab">Map</button>
+                    </li>
                 </ul>
                 <div class="card-body">
                 <div class="tab-content p-3 border border-top-0 rounded-bottom" id="myTabContent">
@@ -122,13 +125,13 @@
                         <div class="search-container mb-4">
                             <div class="row g-3 align-items-center">
                                 <div class="col-md-8">
-                                    <label for="dateFromVel">From:</label>
-                                    <input type="date" id="dateFromVel" name="dateFromVel"
+                                    <label for="dateFrom">From:</label>
+                                    <input type="date" id="dateFrom" name="dateFrom"
                                         class="form-control form-control-sm d-inline-block w-auto">
-                                    <label for="dateToVel">To:</label>
-                                    <input type="date" id="dateToVel" name="dateToLate"
+                                    <label for="dateTo">To:</label>
+                                    <input type="date" id="dateTo" name="dateTo"
                                         class="form-control form-control-sm d-inline-block w-auto">
-                                    <button class="btn btn-primary btn-sm ms-2" onclick="filterByDate()">
+                                    <button class="btn btn-primary btn-sm ms-2" onclick="filterByDate('statistic', velocityHistoryTable)">
                                         <i class="fas fa-filter me-1"></i> Filter
                                     </button>
                                 </div>
@@ -180,13 +183,13 @@
                     <div class="search-container mb-4">
                             <div class="row g-3 align-items-center">
                                 <div class="col-md-8">
-                                    <label for="dateFromLate">From:</label>
-                                    <input type="date" id="dateFromLate" name="dateFromLate"
+                                    <label for="dateFrom">From:</label>
+                                    <input type="date" id="dateFrom" name="dateFrom"
                                         class="form-control form-control-sm d-inline-block w-auto">
-                                    <label for="dateToLate">To:</label>
-                                    <input type="date" id="dateToLate" name="dateToLate"
+                                    <label for="dateTo">To:</label>
+                                    <input type="date" id="dateTo" name="dateTo"
                                         class="form-control form-control-sm d-inline-block w-auto">
-                                    <button class="btn btn-primary btn-sm ms-2" onclick="filterByDate()">
+                                    <button class="btn btn-primary btn-sm ms-2" onclick="filterByDate('statistic_punctuality', lateHistoryTable)">
                                         <i class="fas fa-filter me-1"></i> Filter
                                     </button>
                                 </div>
@@ -234,6 +237,10 @@
                             </table>
                         </div>
                     </div>
+                    <div class="tab-pane fade" id="map-tab-pane" role="tabpanel">
+                    <div id="osm-map"></div>
+
+                </div>
                 </div>
 
             </div>
@@ -262,8 +269,30 @@
 
     <script>
     // Initialize DataTable
+    var element = document.getElementById('osm-map');
 
-    var historyTable = $('#velocityHistoryTable').DataTable({
+	element.style = 'height:300px;';
+
+	var map = L.map(element);
+
+	// Add OSM tile layer to the Leaflet map.
+	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+		attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+	}).addTo(map);
+
+	// Target's GPS coordinates.
+	var target1 = L.latLng('53.429', '14.5610');
+	// Target's GPS coordinates.
+
+
+	// Set map's center to target with zoom 14.
+	map.setView(target1, 14);
+
+
+
+	// Place a marker on the same location.
+    let lateChart, velChart;
+    var velocityHistoryTable = $('#velocityHistoryTable').DataTable({
         dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
             "<'row'<'col-sm-12'tr>>" +
             "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'pB>>",
@@ -304,9 +333,51 @@
         responsive: true
     });
 
-    function filterByDate() {
-        const fromDate = document.getElementById('dateFromLate').value;
-        const toDate = document.getElementById('dateToLate').value;
+    var lateHistoryTable = $('#lateHistoryTable').DataTable({
+        dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'pB>>",
+        buttons: [{
+            extend: 'excelHtml5',
+            className: 'd-none',
+            text: '<i class="fas fa-file-excel me-1"></i> Excel',
+            title: 'Historical_Vehicle_Data'
+        }],
+        columns: [{
+                data: "vehicle_id",
+                className: "text-center"
+            },
+            {
+                data: "punctuality",
+                className: "text-center",
+                render: function(data) {
+                    return data + 'min';
+                }
+            },
+            {
+
+                data: "vehicle_line",
+                className: "text-center",
+                title: "Line Number"
+            },
+            {
+                data: "time_added",
+                className: "text-center",
+                render: function(data) {
+                    return new Date(data * 1000).toLocaleString();
+                },
+                title: "Recorded At"
+            }
+        ],
+        language: {
+            // Same as your other table
+        },
+        responsive: true
+    });
+
+    function filterByDate(dataBase, table) {
+        const fromDate = document.getElementById('dateFrom').value;
+        const toDate = document.getElementById('dateTo').value;
         const vehicleInput = document.getElementById('vehicleInput').value;
 
         // Convert dates to timestamps
@@ -318,12 +389,13 @@
             type: "GET",
             dataType: "json",
             data: {
+                dataBase: dataBase,
                 from: fromTimestamp,
                 to: toTimestamp,
                 line: vehicleInput || null
             },
             success: function(data) {
-                historyTable.clear().rows.add(data).draw();
+                table.clear().rows.add(data).draw();
             },
             error: function(xhr, status, error) {
                 console.error("Error fetching historical data:", error);
@@ -480,19 +552,13 @@
         }, 500);
     });
 
-    function reloadVelocityTable() {
-        velocityTable.ajax.reload(function() {
+    function reloadTable(table, chart, param, label) {
+        table.ajax.reload(function() {
             document.getElementById('updateTime').textContent = new Date().toLocaleString();
         });
-        updateVelChart(velChart, velocityTable);
+        updateChart(chart, table, param, label);
     }
 
-    function reloadLateTable() {
-        lateTable.ajax.reload(function() {
-            document.getElementById('updateTime').textContent = new Date().toLocaleString();
-        });
-        updateLateChart(lateChart, lateTable);
-    }
 
     function sendVelocityDataToDb() {
         let dataArray = velocityTable.rows().data().toArray();
@@ -525,92 +591,90 @@
     }
 
     function updateChart(chart, table, param, label) {
-        const data = table.rows().data().toArray();
-        const velocities = data.map(vehicle => vehicle.param);
-        const labels = data.map(vehicle => vehicle.vehicle_id);
-        chart.data = {
-            labels: labels,
-            datasets: [{
-                label: 'vehicle speed',
-                data: velocities,
-                borderWidth: 1
-            }]
-        };
+    const data = table.rows().data().toArray();
+    const values = data.map(vehicle => vehicle[param]);
+    const labels = data.map(vehicle => vehicle.vehicle_id);
+    
+    if (chart) {
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = values;
+        chart.data.datasets[0].label = label;
         chart.update();
     }
-    function updateLateChart(chart, table) {
-        const data = lateTable.rows().data().toArray();
-        const velocities = data.map(vehicle => vehicle.punctuality);
-        const labels = data.map(vehicle => vehicle.vehicle_id);
-        chart.data = {
+}
+
+    function createChart(id, param, table, label) {
+    const ctx = document.getElementById(id);
+    
+    // Destroy existing chart if it exists
+    if (id === 'myChart' && velChart) {
+        velChart.destroy();
+    } else if (id === 'lateChart' && lateChart) {
+        lateChart.destroy();
+    }
+    
+    const data = table.rows().data().toArray();
+    const values = data.map(vehicle => vehicle[param]);
+    const labels = data.map(vehicle => vehicle.vehicle_id);
+    
+    const newChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
             labels: labels,
             datasets: [{
-                label: 'vehicle punctuality',
-                data: velocities,
+                label: label,
+                data: values,
                 borderWidth: 1
             }]
-        };
-        chart.update();
-    }
-    var velChart;
-
-    function createChart(id,param,table, label) {
-        const ctx = document.getElementById(id);
-        const data = table.rows().data().toArray();
-        const velocities = data.map(vehicle => vehicle.param);
-        const labels = data.map(vehicle => vehicle.vehicle_id);
-        velChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: label,
-                    data: velocities,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
                 }
             }
-        });
+        }
+    });
+    
+    // Store the reference to the new chart
+    if (id === 'myChart') {
+        velChart = newChart;
+    } else if (id === 'lateChart') {
+        lateChart = newChart;
     }
+}
+let markerGroup = L.layerGroup().addTo(map);
+function updateMap(){
+    markerGroup.clearLayers(); // This removes all markers
+    
+    arrayMap = velocityTable.rows().data().toArray();
+    arrayMap.forEach(element => {
+        let targetTemp = L.latLng(element.latitude, element.longitude);
+        L.marker(targetTemp).addTo(markerGroup);
+    });
+}
 
-    var lateChart;
+   
+$(window).on("load", function() {
+    createChart('myChart', 'velocity', velocityTable, 'vehicle velocity');
+    createChart('lateChart', 'punctuality', lateTable, 'vehicle punctuality');
+});
 
-    function createLateChart() {
-        const ctx = document.getElementById('lateChart');
-        const data = lateTable.rows().data().toArray();
-        const punctuality = data.map(vehicle => vehicle.punctuality);
-        const labels = data.map(vehicle => vehicle.vehicle_id);
-        lateChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'vehicle punctuality',
-                    data: punctuality,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-    $(window).on("load", createChart('#myChart', 'velocity', velocityTable, 'vehicle Velocity'));
-    $(window).on("load", createLateChart());
-    setInterval(reloadTable(velChart, velocityTable, 'velocity', 'vehicle Velocity'), 5000);
-    setInterval(reloadLateTable, 5000);
-    setInterval(sendVelocityDataToDb, 10000);
-    setInterval(sendPunctualityDataToDb, 10000);
+setInterval(() => {
+    velocityTable.ajax.reload(function() {
+        document.getElementById('updateTime').textContent = new Date().toLocaleString();
+        updateChart(velChart, velocityTable, 'velocity', 'vehicle velocity');
+    });
+}, 5000);
+
+setInterval(() => {
+    lateTable.ajax.reload(function() {
+        document.getElementById('updateTime').textContent = new Date().toLocaleString();
+        updateChart(lateChart, lateTable, 'punctuality', 'vehicle punctuality');
+    });
+}, 5000);
+
+setInterval(updateMap, 5000);
     </script>
 </body>
 

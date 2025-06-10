@@ -6,7 +6,9 @@ try {
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Build the base query
-    $sql = "SELECT * FROM statistic WHERE 1=1";
+    $dataBase = $_GET['dataBase'];
+
+    $sql = "SELECT * FROM $dataBase WHERE 1=1";
     $params = [];
     
     // Add date range conditions
