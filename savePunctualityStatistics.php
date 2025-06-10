@@ -14,7 +14,7 @@ $db = new PDO('sqlite:szofer.db');
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Prepare the insert statement
-    $stmt = $db->prepare("INSERT INTO statistic (vehicle_id, velocity, vehicle_line, time_added) VALUES (:vehicle_id, :velocity, :vehicle_line, :time_added)");
+    $stmt = $db->prepare("INSERT INTO statistic_punctuality (vehicle_id, punctuality, vehicle_line, time_added) VALUES (:vehicle_id, :punctuality, :vehicle_line, :time_added)");
 
      foreach ($data['dataArray'] as $vehicle) {
         try {
@@ -26,7 +26,7 @@ $db = new PDO('sqlite:szofer.db');
             $time = time();
             // Bind parameters and execute
             $stmt->bindParam(':vehicle_id', $vehicle['vehicle_id']);
-            $stmt->bindParam(':velocity', $vehicle['velocity']);
+            $stmt->bindParam(':punctuality', $vehicle['punctuality']);
             $stmt->bindParam(':vehicle_line', $vehicle['line_number']);
             $stmt->bindParam(':time_added', $time);
             $stmt->execute();
